@@ -1,0 +1,9 @@
+"""Constants for Owlet component."""
+SENSOR_OXYGEN_LEVEL = 'oxygen_level'
+SENSOR_HEART_RATE = 'heart_rate'
+SENSOR_SOCK_OFF = 'sock_connection'
+SENSOR_BATTERY_CHARGING = 'battery_charging'
+SENSOR_BATTERY_LEVEL = 'batt_level'
+SENSOR_SOCK_CONNECTION = 'sock_connection'
+SENSOR_BASE_STATION = 'base_station_on'
+SENSOR_MOVEMENT = 'movement'

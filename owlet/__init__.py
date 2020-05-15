@@ -1,99 +1,73 @@
-"""Support for Owlet binary sensors."""
 import logging
-from datetime import timedelta
+import voluptuous as vol
+from owletpy.OwletPy import OwletPy
 
-from homeassistant.components.binary_sensor import BinarySensorDevice
-from custom_components.owlet import DOMAIN as OWLET_DOMAIN
-from homeassistant.util import dt as dt_util
+from homeassistant.const import (CONF_USERNAME, CONF_PASSWORD, CONF_NAME)
+import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.discovery import load_platform
 
-from .const import SENSOR_BASE_STATION, SENSOR_MOVEMENT, SENSOR_SOCK_ON, SENSOR_BATTERY_CHARGING
-
-SCAN_INTERVAL = timedelta(seconds=30)
-
-BINARY_CONDITIONS = {
-    SENSOR_BASE_STATION: {
-        'name': 'Base Station',
-        'device_class': 'power'
-    },
-    SENSOR_MOVEMENT: {
-        'name': 'Movement',
-        'device_class': 'motion'
-    },
-    SENSOR_SOCK_ON: {
-        'name': 'Sock On',
-        'device_class': None
-    },
-    SENSOR_BATTERY_CHARGING: {
-        'name': 'Battery Charging',
-        'device_class': 'plug'
-    }
-}
+from .const import SENSOR_MOVEMENT, SENSOR_BASE_STATION, SENSOR_HEART_RATE, \
+    SENSOR_OXYGEN_LEVEL, SENSOR_BATTERY_LEVEL, SENSOR_SOCK_CONNECTION, \
+    SENSOR_SOCK_ON, SENSOR_BATTERY_CHARGING
 
 _LOGGER = logging.getLogger(__name__)
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    """Set up owlet binary sensor."""
-    if discovery_info is None:
-        return
+DOMAIN = 'owlet'
 
-    device = hass.data[OWLET_DOMAIN]
+SENSOR_TYPES = [
+    SENSOR_OXYGEN_LEVEL,
+    SENSOR_HEART_RATE,
+    SENSOR_BASE_STATION,
+    SENSOR_MOVEMENT,
+    SENSOR_BATTERY_LEVEL,
+    SENSOR_SOCK_CONNECTION,
+    SENSOR_SOCK_ON,
+    SENSOR_BATTERY_CHARGING
+]
 
-    entities = []
-    for condition in BINARY_CONDITIONS:
-        if condition in device.monitor:
-            entities.append(OwletBinarySensor(device, condition))
+CONFIG_SCHEMA = vol.Schema({
+    DOMAIN: vol.Schema({
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_NAME): cv.string,
+    }),
+}, extra=vol.ALLOW_EXTRA)
 
-    add_entities(entities, True)
 
+def setup(hass, config):
 
-class OwletBinarySensor(BinarySensorDevice):
-    """Representation of owlet binary sensor."""
+    username = config[DOMAIN][CONF_USERNAME]
+    password = config[DOMAIN][CONF_PASSWORD]
+    name = config[DOMAIN].get(CONF_NAME)
 
-    def __init__(self, device, condition):
-        """Init owlet binary sensor."""
-        self._device = device
-        self._condition = condition
-        self._state = None
-        self._base_on = False
-        self._prop_expiration = None
-        self._is_charging = None
-
-    @property
-    def name(self):
-        """Return sensor name."""
-        return '{} {}'.format(self._device.name,
-                              BINARY_CONDITIONS[self._condition]['name'])
-
-    @property
-    def is_on(self):
-        """Return current state of sensor."""
-        return self._state
-
-    @property
-    def device_class(self):
-        """Return the device class."""
-        return BINARY_CONDITIONS[self._condition]['device_class']
-
-    def update(self):
-        """Update state of sensor."""
-        try:
-         
-            self._base_on = self._device.device.base_station_on
-            self._prop_expiration = self._device.device.prop_expire_time
-            self._is_charging = self._device.device.charge_status > 0
-
-            # handle expired values
-            if self._prop_expiration < dt_util.now().timestamp():
-                self._state = False
-                return
-
-            if self._condition == 'movement':
-                if not self._base_on or self._is_charging:
-                    return False
-
-            self._state = getattr(self._device.device, self._condition)
-        
-        except Exception as e:
-            _LOGGER.error(str(e))
+    try:
+        device = OwletPy(username, password)
+    except KeyError:
+        _LOGGER.error('Owlet authentication failed.  Please verify your '
+                      'credentials are correct.')
+        return False
+    except:
+        _LOGGER.error('Error')
         return False
 
+    device.update_properties()
+
+    if not name:
+        name = '{}\'s Owlet'.format(device.baby_name)
+
+    hass.data[DOMAIN] = OwletDevice(device, name, SENSOR_TYPES)
+
+    load_platform(hass, 'sensor', DOMAIN, {}, config)
+    load_platform(hass, 'binary_sensor', DOMAIN, {}, config)
+
+    return True
+
+
+class OwletDevice():
+    """Represents a configured Owlet device."""
+
+    def __init__(self, device, name, monitor):
+        """Initialize device."""
+        self.name = name
+        self.monitor = monitor
+        self.device = device

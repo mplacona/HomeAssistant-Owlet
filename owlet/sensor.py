@@ -97,7 +97,7 @@ class OwletSensor(Entity):
                     or self._device.device.charge_status > 0 \
                     or self._prop_expiration < dt_util.now().timestamp() \
                     or self._movement:
-                value = -1
+                value = 'off'
 
             self._state = value
         

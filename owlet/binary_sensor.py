@@ -6,7 +6,7 @@ from homeassistant.components.binary_sensor import BinarySensorDevice
 from custom_components.owlet import DOMAIN as OWLET_DOMAIN
 from homeassistant.util import dt as dt_util
 
-from .const import SENSOR_BASE_STATION, SENSOR_MOVEMENT, SENSOR_SOCK_OFF, SENSOR_BATTERY_CHARGING
+from .const import SENSOR_BASE_STATION, SENSOR_MOVEMENT, SENSOR_SOCK_ON, SENSOR_BATTERY_CHARGING
 
 SCAN_INTERVAL = timedelta(seconds=30)
 
@@ -19,7 +19,7 @@ BINARY_CONDITIONS = {
         'name': 'Movement',
         'device_class': 'motion'
     },
-    SENSOR_SOCK_OFF: {
+    SENSOR_SOCK_ON: {
         'name': 'Sock On',
         'device_class': None
     },

@@ -5,5 +5,5 @@
   "documentation": "https://github.com/CAB426/pyowlet",
   "dependencies": [],
   "codeowners": ["@CAB426"],
-  "requirements": ["owletpy==1.0.6","pyrebase==3.0.27"]
+  "requirements": ["owletpy==1.0.11"]
 }

@@ -90,8 +90,16 @@ class OwletBinarySensor(BinarySensorDevice):
             if self._condition == 'movement':
                 if not self._base_on or self._is_charging:
                     return False
+            
+            value = getattr(self._device.device, self._condition)
+            
+            if self._condition == 'sock_off':
+                if value == 1:
+                    return False
+                else:
+                    return True
 
-            self._state = getattr(self._device.device, self._condition)
+            self._state = value
         
         except Exception as e:
             _LOGGER.error(str(e))

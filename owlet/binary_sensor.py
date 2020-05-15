@@ -94,10 +94,10 @@ class OwletBinarySensor(BinarySensorDevice):
             value = getattr(self._device.device, self._condition)
             
             if self._condition == 'sock_off':
-                if value == 1:
-                    return False
-                else:
+                if value == 0:
                     return True
+                else:
+                    return False
 
             self._state = value
         

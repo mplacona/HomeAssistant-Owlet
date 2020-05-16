@@ -29,7 +29,7 @@ BINARY_CONDITIONS = {
     }
 }
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGERB = logging.getLogger(__name__)
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up owlet binary sensor."""
@@ -82,6 +82,14 @@ class OwletBinarySensor(BinarySensorDevice):
             self._prop_expiration = self._device.device.prop_expire_time
             self._is_charging = self._device.device.charge_status > 0
 
+            value = getattr(self._device.device, self._condition)
+
+            if self._condition == 'sock_off':
+                if value == 0:
+                  value = 1
+                else:
+                  value = 0
+
             # handle expired values
             if self._prop_expiration < dt_util.now().timestamp():
                 self._state = False
@@ -91,14 +99,6 @@ class OwletBinarySensor(BinarySensorDevice):
                 if not self._base_on or self._is_charging:
                     return False
             
-            value = getattr(self._device.device, self._condition)
-            
-            if self._condition == 'sock_off':
-                if value == 0:
-                    return True
-                else:
-                    return False
-
             self._state = value
         
         except Exception as e:

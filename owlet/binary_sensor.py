@@ -29,8 +29,6 @@ BINARY_CONDITIONS = {
     }
 }
 
-_LOGGERB = logging.getLogger(__name__)
-
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up owlet binary sensor."""
     if discovery_info is None:

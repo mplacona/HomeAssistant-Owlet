@@ -2,7 +2,13 @@
 import logging
 from datetime import timedelta
 
-from homeassistant.components.binary_sensor import BinarySensorDevice
+try:
+    from homeassistant.components.binary_sensor import (
+        BinarySensorEntity as BinarySensorDevice,
+    )
+except ImportError:
+    from homeassistant.components.binary_sensor import BinarySensorDevice
+
 from custom_components.owlet import DOMAIN as OWLET_DOMAIN
 from homeassistant.util import dt as dt_util
 

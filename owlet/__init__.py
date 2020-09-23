@@ -25,11 +25,14 @@ SENSOR_TYPES = [
     SENSOR_BATTERY_CHARGING
 ]
 
+CONF_OWLET_REGION = 'region'
+
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_NAME): cv.string,
+        vol.Optional(CONF_OWLET_REGION, default='world'): cv.string,
+        vol.Optional(CONF_NAME): cv.string
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -38,10 +41,11 @@ def setup(hass, config):
 
     username = config[DOMAIN][CONF_USERNAME]
     password = config[DOMAIN][CONF_PASSWORD]
+    region = config[DOMAIN].get(CONF_OWLET_REGION)
     name = config[DOMAIN].get(CONF_NAME)
 
     try:
-        device = OwletPy(username, password)
+        device = OwletPy(username, password, region)
     except KeyError:
         _LOGGER.error('Owlet authentication failed.  Please verify your '
                       'credentials are correct.')
@@ -54,7 +58,7 @@ def setup(hass, config):
 
     if not name:
         name = '{}\'s Owlet'.format(device.baby_name)
-
+    
     hass.data[DOMAIN] = OwletDevice(device, name, SENSOR_TYPES)
 
     load_platform(hass, 'sensor', DOMAIN, {}, config)
